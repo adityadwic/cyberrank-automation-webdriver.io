@@ -53,7 +53,13 @@ npm run report:serve     # Live Allure server
 
 **Report Locations:**
 - **Executive Summary**: `test-reports/test-summary.html` - Clean overview with pass/fail stats
+<img width="1440" height="932" alt="Screenshot 2025-08-08 at 11 12 05" src="https://github.com/user-attachments/assets/a8c5e0b5-68fa-4080-b638-9ebb1a972282" />
+
+
 - **Detailed Report**: `test-reports/allure-report/index.html` - Interactive report with screenshots
+<img width="1440" height="932" alt="Screenshot 2025-08-08 at 09 48 39" src="https://github.com/user-attachments/assets/b80e2971-f473-46aa-8322-409264191ca9" />
+
+  
 
 ## 📁 Project Structure
 
