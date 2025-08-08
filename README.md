@@ -6,7 +6,7 @@ End-to-end automation tests for CyberRank platform (https://www.cyberrank.ai) us
 
 1. **Setup**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/adityadwic/cyberrank-automation-webdriver.io.git
    cd qa-cyberrank
    npm install
    cp env.example .env
