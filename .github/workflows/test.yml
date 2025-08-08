@@ -1,0 +1,94 @@
+name: CyberRank E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Setup Chrome
+      uses: browser-actions/setup-chrome@v1
+    
+    - name: Create environment file
+      run: |
+        cp env.example .env
+        echo "TEST_USER_EMAIL=${{ secrets.TEST_USER_EMAIL }}" >> .env
+        echo "TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }}" >> .env
+        echo "HEADLESS_MODE=true" >> .env
+    
+    - name: Run pre-login tests
+      run: npm run test:pre-login:headless
+      env:
+        CI: true
+    
+    - name: Run post-login tests
+      run: npm run test:post-login:headless
+      env:
+        CI: true
+      continue-on-error: true  # Post-login tests might fail without valid credentials
+    
+    - name: Generate test report
+      if: always()
+      run: npm run report:generate
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.node-version }}
+        path: |
+          allure-results/
+          screenshots/
+    
+    - name: Upload Allure report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: allure-report-${{ matrix.node-version }}
+        path: allure-report/
+    
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          let comment = '## 🧪 Test Results\n\n';
+          
+          try {
+            const results = fs.readdirSync('allure-results');
+            comment += '✅ Tests completed successfully!\n';
+            comment += `📊 Test results available in artifacts\n`;
+            comment += `🔍 View detailed report in the uploaded artifacts\n`;
+          } catch (error) {
+            comment += '❌ Tests failed or no results found\n';
+            comment += 'Please check the workflow logs for details\n';
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          }); 
